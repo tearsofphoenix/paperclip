@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 
 type Step = 1 | 2 | 3 | 4;
+type CompanyTemplate = "general" | "zero_person_rd";
 type AdapterType =
   | "claude_local"
   | "codex_local"
@@ -91,6 +92,8 @@ export function OnboardingWizard() {
   // Step 1
   const [companyName, setCompanyName] = useState("");
   const [companyGoal, setCompanyGoal] = useState("");
+  const [companyTemplate, setCompanyTemplate] =
+    useState<CompanyTemplate>("general");
 
   // Step 2
   const [agentName, setAgentName] = useState("CEO");
@@ -249,6 +252,7 @@ export function OnboardingWizard() {
     setError(null);
     setCompanyName("");
     setCompanyGoal("");
+    setCompanyTemplate("general");
     setAgentName("CEO");
     setAdapterType("claude_local");
     setCwd("");
@@ -350,6 +354,35 @@ export function OnboardingWizard() {
       setCreatedCompanyPrefix(company.issuePrefix);
       setSelectedCompanyId(company.id);
       queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
+
+      if (companyTemplate === "zero_person_rd") {
+        await companiesApi.bootstrapZeroPersonRD(company.id, {
+          goal: companyGoal.trim() || null,
+          socialChannels: ["x", "reddit"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.companies.all,
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.dashboard(company.id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.goals.list(company.id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.agents.list(company.id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.projects.list(company.id),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.issues.list(company.id),
+        });
+        reset();
+        closeOnboarding();
+        navigate(`/${company.issuePrefix}/dashboard`);
+        return;
+      }
 
       if (companyGoal.trim()) {
         const parsedGoal = parseOnboardingGoalInput(companyGoal);
@@ -604,6 +637,60 @@ export function OnboardingWizard() {
               {/* Step content */}
               {step === 1 && (
                 <div className="space-y-5">
+                  <div className="space-y-2">
+                    <div>
+                      <h3 className="font-medium">Choose how this company should start</h3>
+                      <p className="text-xs text-muted-foreground">
+                        You can begin with the classic CEO flow or bootstrap a zero-person indie R&D team.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {[
+                        {
+                          value: "general" as const,
+                          title: "Classic Company",
+                          description: "Create a company, then configure your first CEO agent manually.",
+                          icon: Building2,
+                        },
+                        {
+                          value: "zero_person_rd" as const,
+                          title: "Zero-Person R&D",
+                          description:
+                            "Instantly create PM, Dev, Tester, and Marketing roles plus a social→validate→build→launch pipeline.",
+                          icon: Rocket,
+                        },
+                      ].map((template) => {
+                        const Icon = template.icon;
+                        const active = companyTemplate === template.value;
+                        return (
+                          <button
+                            key={template.value}
+                            type="button"
+                            className={cn(
+                              "rounded-md border p-3 text-left transition-colors",
+                              active
+                                ? "border-foreground bg-accent"
+                                : "border-border hover:bg-accent/50",
+                            )}
+                            onClick={() => setCompanyTemplate(template.value)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="bg-muted/60 p-2">
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium">{template.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {template.description}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="flex items-center gap-3 mb-1">
                     <div className="bg-muted/50 p-2">
                       <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -651,6 +738,11 @@ export function OnboardingWizard() {
                       value={companyGoal}
                       onChange={(e) => setCompanyGoal(e.target.value)}
                     />
+                    {companyTemplate === "zero_person_rd" && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        This goal will seed your zero-person blueprint and align the PM, Dev, Tester, and Marketing roles.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -1251,7 +1343,11 @@ export function OnboardingWizard() {
                       ) : (
                         <ArrowRight className="h-3.5 w-3.5 mr-1" />
                       )}
-                      {loading ? "Creating..." : "Next"}
+                      {loading
+                        ? "Creating..."
+                        : companyTemplate === "zero_person_rd"
+                          ? "Create Team"
+                          : "Next"}
                     </Button>
                   )}
                   {step === 2 && (

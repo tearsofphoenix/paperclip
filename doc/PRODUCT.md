@@ -82,6 +82,27 @@ More detailed task structure TBD.
 6. Set budgets, define initial strategic tasks
 7. Hit go — agents start their heartbeats and the company runs
 
+## Current Default Operator Scenario
+
+For the current implementation target, the fastest path through Paperclip is a **zero-person indie R&D team**:
+
+- PM agent mines X / Reddit / other social channels for painful, monetizable problems
+- Dev agent turns validated demand into a minimal shippable product
+- Tester agent protects launch quality and revenue-critical paths
+- Marketing agent distributes the launch, gathers demand feedback, and grows monetization
+
+The system should let one board operator bootstrap this loop quickly and observe the funnel from discovery to shipped revenue experiments.
+
+Paperclip now also treats raw market discovery as a first-class input:
+
+- a PM or crawler can capture a social signal from X / Reddit / similar sources
+- the board can configure reusable X / Reddit ingestion sources with saved queries and credential bindings
+- operators can manually sync those sources or let the server heartbeat scheduler auto-sync them on a configured interval
+- each source can auto-score imported signals with deterministic rules or optional LLM scoring, then auto-promote high-conviction demand into execution work
+- the signal is scored, reviewed, and promoted into execution work
+- once promoted, it joins the same project / issue / agent system used by the rest of the company
+- launch / growth promotions can automatically wake the assigned QA / marketing agents so distribution work starts without manual board intervention
+
 ## Guidelines
 
 There are two runtime modes Paperclip must support:

@@ -1,6 +1,45 @@
 export const COMPANY_STATUSES = ["active", "paused", "archived"] as const;
 export type CompanyStatus = (typeof COMPANY_STATUSES)[number];
 
+export const COMPANY_OPERATING_MODELS = [
+  "general",
+  "zero_person_rd",
+] as const;
+export type CompanyOperatingModel = (typeof COMPANY_OPERATING_MODELS)[number];
+
+export const COMPANY_SOCIAL_SIGNAL_SOURCES = [
+  "x",
+  "reddit",
+  "github",
+  "hacker_news",
+  "product_hunt",
+] as const;
+export type CompanySocialSignalSource =
+  (typeof COMPANY_SOCIAL_SIGNAL_SOURCES)[number];
+
+export const SOCIAL_SIGNAL_SOURCE_PROVIDERS = ["x", "reddit"] as const;
+export type SocialSignalSourceProvider =
+  (typeof SOCIAL_SIGNAL_SOURCE_PROVIDERS)[number];
+
+export const SOCIAL_SIGNAL_SOURCE_KINDS = [
+  "x_query",
+  "reddit_subreddit_new",
+  "reddit_search",
+] as const;
+export type SocialSignalSourceKind = (typeof SOCIAL_SIGNAL_SOURCE_KINDS)[number];
+
+export const SOCIAL_SIGNAL_SCORING_MODES = ["rules", "llm"] as const;
+export type SocialSignalScoringMode = (typeof SOCIAL_SIGNAL_SCORING_MODES)[number];
+
+export const ZERO_PERSON_RD_STAGES = [
+  "discover",
+  "validate",
+  "build",
+  "launch",
+  "growth",
+] as const;
+export type ZeroPersonRDStage = (typeof ZERO_PERSON_RD_STAGES)[number];
+
 export const DEPLOYMENT_MODES = ["local_trusted", "authenticated"] as const;
 export type DeploymentMode = (typeof DEPLOYMENT_MODES)[number];
 
@@ -43,6 +82,7 @@ export const AGENT_ROLES = [
   "designer",
   "pm",
   "qa",
+  "marketer",
   "devops",
   "researcher",
   "general",
@@ -58,6 +98,7 @@ export const AGENT_ROLE_LABELS: Record<AgentRole, string> = {
   designer: "Designer",
   pm: "PM",
   qa: "QA",
+  marketer: "Marketing",
   devops: "DevOps",
   researcher: "Researcher",
   general: "General",
@@ -121,6 +162,15 @@ export type IssueStatus = (typeof ISSUE_STATUSES)[number];
 
 export const ISSUE_PRIORITIES = ["critical", "high", "medium", "low"] as const;
 export type IssuePriority = (typeof ISSUE_PRIORITIES)[number];
+
+export const SOCIAL_SIGNAL_STATUSES = [
+  "new",
+  "reviewing",
+  "validated",
+  "rejected",
+  "promoted",
+] as const;
+export type SocialSignalStatus = (typeof SOCIAL_SIGNAL_STATUSES)[number];
 
 export const GOAL_LEVELS = ["company", "team", "agent", "task"] as const;
 export type GoalLevel = (typeof GOAL_LEVELS)[number];

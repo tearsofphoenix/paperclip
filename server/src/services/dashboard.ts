@@ -1,9 +1,19 @@
+import type { CompanyMetadata } from "@paperclipai/shared";
 import { and, eq, gte, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { agents, approvals, companies, costEvents, issues } from "@paperclipai/db";
 import { notFound } from "../errors.js";
+import { companyBlueprintService } from "./company-blueprints.js";
+import { socialSignalService } from "./social-signals.js";
+
+function coerceCompanyMetadata(value: unknown): CompanyMetadata | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as CompanyMetadata;
+}
 
 export function dashboardService(db: Db) {
+  const blueprints = companyBlueprintService(db);
+  const signals = socialSignalService(db);
   return {
     summary: async (companyId: string) => {
       const company = await db
@@ -78,6 +88,12 @@ export function dashboardService(db: Db) {
         company.budgetMonthlyCents > 0
           ? (monthSpendCents / company.budgetMonthlyCents) * 100
           : 0;
+      const metadata = coerceCompanyMetadata(company.metadata);
+      const socialSignals = await signals.summary(companyId);
+      const funnel =
+        metadata?.operatingModel === "zero_person_rd"
+          ? await blueprints.summarizeZeroPersonRDFunnel(companyId)
+          : null;
 
       return {
         companyId,
@@ -94,6 +110,8 @@ export function dashboardService(db: Db) {
           monthUtilizationPercent: Number(utilization.toFixed(2)),
         },
         pendingApprovals,
+        socialSignals,
+        funnel,
       };
     },
   };

@@ -5,6 +5,8 @@ import type {
   CompanyPortabilityImportResult,
   CompanyPortabilityPreviewRequest,
   CompanyPortabilityPreviewResult,
+  ZeroPersonRDBlueprintBootstrapRequest,
+  ZeroPersonRDBlueprintBootstrapResult,
 } from "@paperclipai/shared";
 import { api } from "./client";
 
@@ -33,4 +35,12 @@ export const companiesApi = {
     api.post<CompanyPortabilityPreviewResult>("/companies/import/preview", data),
   importBundle: (data: CompanyPortabilityImportRequest) =>
     api.post<CompanyPortabilityImportResult>("/companies/import", data),
+  bootstrapZeroPersonRD: (
+    companyId: string,
+    data: ZeroPersonRDBlueprintBootstrapRequest,
+  ) =>
+    api.post<ZeroPersonRDBlueprintBootstrapResult>(
+      `/companies/${companyId}/blueprints/zero-person-rd-bootstrap`,
+      data,
+    ),
 };

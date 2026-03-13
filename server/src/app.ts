@@ -20,6 +20,8 @@ import { secretRoutes } from "./routes/secrets.js";
 import { costRoutes } from "./routes/costs.js";
 import { activityRoutes } from "./routes/activity.js";
 import { dashboardRoutes } from "./routes/dashboard.js";
+import { socialSignalRoutes } from "./routes/social-signals.js";
+import { socialSignalSourceRoutes } from "./routes/social-signal-sources.js";
 import { sidebarBadgeRoutes } from "./routes/sidebar-badges.js";
 import { llmRoutes } from "./routes/llms.js";
 import { assetRoutes } from "./routes/assets.js";
@@ -113,6 +115,8 @@ export async function createApp(
   api.use(costRoutes(db));
   api.use(activityRoutes(db));
   api.use(dashboardRoutes(db));
+  api.use(socialSignalRoutes(db));
+  api.use(socialSignalSourceRoutes(db));
   api.use(sidebarBadgeRoutes(db));
   api.use(
     accessRoutes(db, {

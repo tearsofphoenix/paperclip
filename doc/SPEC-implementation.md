@@ -24,6 +24,12 @@ Paperclip V1 must provide a full control-plane loop for autonomous agents:
 
 Success means one operator can run a small AI-native company end-to-end with clear visibility and control.
 
+For the current implementation focus, the default operator scenario is a **zero-person indie R&D team**:
+
+- Paperclip bootstraps PM, Dev, Tester, and Marketing agent roles
+- the board can push the team from **social signal discovery** to **validation**, **build**, **launch**, and **growth**
+- the dashboard should make this commercial funnel visible without requiring a custom runtime per company
+
 ## 3. Explicit V1 Product Decisions
 
 These decisions close open questions from `SPEC.md` for V1.
@@ -43,6 +49,7 @@ These decisions close open questions from `SPEC.md` for V1.
 | Budget period | Monthly UTC calendar window |
 | Budget enforcement | Soft alerts + hard limit auto-pause |
 | Deployment modes | Canonical model is `local_trusted` + `authenticated` with `private/public` exposure policy (see `doc/DEPLOYMENT-MODES.md`) |
+| Default operating model | `zero_person_rd` blueprint for indie R&D teams; generic company mode remains supported |
 
 ## 4. Current Baseline (Repo Snapshot)
 
@@ -59,15 +66,24 @@ V1 implementation extends this baseline into a company-centric, governance-aware
 ## 5.1 In Scope
 
 - Company lifecycle (create/list/get/update/archive)
+- Company blueprint bootstrap for `zero_person_rd` teams
 - Goal hierarchy linked to company mission
 - Agent lifecycle with org structure and adapter configuration
+- Role blueprint for PM, Dev, Tester, and Marketing startup teams
 - Task lifecycle with parent/child hierarchy and comments
+- Social-signal-to-shipping starter pipeline expressed through projects/issues/labels
 - Atomic task checkout and explicit task status transitions
 - Board approvals for hires and CEO strategy proposal
 - Heartbeat invocation, status tracking, and cancellation
 - Cost event ingestion and rollups (agent/task/project/company)
 - Budget settings and hard-stop enforcement
 - Board web UI for dashboard, org chart, tasks, agents, approvals, costs
+- Dashboard funnel summary for zero-person indie R&D teams
+- Social signal intake and promotion pipeline for X / Reddit / similar discovery sources
+- Board-configured social ingestion sources for real X recent-search and Reddit OAuth pull workflows
+- Source-level scheduler for automatic X / Reddit ingestion sync inside the existing heartbeat loop
+- Deterministic or LLM-backed auto-scoring and optional auto-promotion rules on imported social signals
+- Automatic launch / growth execution kickoff after promotion, reusing issues + heartbeat wakeup
 - Agent-facing API contract (task read/write, heartbeat report, cost report)
 - Auditable activity log for all mutating actions
 
@@ -106,6 +122,7 @@ A lightweight scheduler/worker in the server process handles:
 - heartbeat trigger checks
 - stuck run detection
 - budget threshold checks
+- scheduled social ingestion source sync checks
 
 Separate queue infrastructure is not required for V1.
 
@@ -123,6 +140,7 @@ Human auth tables (`users`, `sessions`, and provider-specific auth artifacts) ar
 - `name` text not null
 - `description` text null
 - `status` enum: `active | paused | archived`
+- `metadata` jsonb null (`operatingModel`, template version, blueprint state)
 
 Invariant: every business record belongs to exactly one company.
 
@@ -131,7 +149,7 @@ Invariant: every business record belongs to exactly one company.
 - `id` uuid pk
 - `company_id` uuid fk `companies.id` not null
 - `name` text not null
-- `role` text not null
+- `role` text not null (`pm | engineer | qa | marketer | ...`)
 - `title` text null
 - `status` enum: `active | paused | idle | running | error | terminated`
 - `reports_to` uuid fk `agents.id` null
@@ -309,6 +327,71 @@ Operational policy:
 - `issue_attachments(company_id, issue_id)`
 - `company_secrets(company_id, name)` unique
 - `company_secret_versions(secret_id, version)` unique
+
+## 7.15 Zero-person R&D blueprint
+
+V1 includes a first-party bootstrap for indie R&D operators:
+
+- endpoint: `POST /api/companies/:companyId/blueprints/zero-person-rd-bootstrap`
+- creates or reuses a root company goal
+- initializes PM / Dev / Tester / Marketing agents
+- seeds starter projects for `discover`, `validate`, `build`, `launch`, `growth`
+- seeds starter issues plus funnel labels so dashboard metrics can show work-in-funnel vs shipped work
+
+This blueprint is intentionally implemented on top of the existing `companies`, `agents`, `projects`, `goals`, `issues`, and `labels` model rather than introducing a separate opportunity-management subsystem in V1.
+
+## 7.16 `social_signals`
+
+Paperclip also stores discovery inputs before they become execution work:
+
+- `id` uuid pk
+- `company_id` uuid fk not null
+- `source` enum/text (`x | reddit | github | hacker_news | product_hunt`)
+- `status` enum/text (`new | reviewing | validated | rejected | promoted`)
+- `target_stage` enum/text null (`discover | validate | build | launch | growth`)
+- `title` text not null
+- `url` text null
+- `author_handle` text null
+- `external_id` text null
+- `summary` text not null
+- `pain_points` text null
+- `pain_score` int not null default 50
+- `urgency_score` int not null default 50
+- `monetization_score` int not null default 50
+- `linked_issue_id` uuid fk null
+- `linked_project_id` uuid fk null
+
+Operational behavior:
+
+- signals can be captured manually or imported from configured ingestion sources
+- a signal can be promoted into an issue for the zero-person execution funnel
+- imported signals may be auto-scored into `reviewing | validated | rejected` via deterministic rules or optional LLM scoring, and high-scoring signals may auto-promote into issues
+- promotions targeting `launch` or `growth` may automatically move the linked issue into executable state and wake the assigned agent heartbeat
+- dashboard summary reports both raw signal status counts and downstream funnel counts
+
+## 7.17 `social_signal_sources`
+
+Paperclip stores reusable ingestion source definitions per company:
+
+- `id` uuid pk
+- `company_id` uuid fk not null
+- `provider` enum/text (`x | reddit`)
+- `kind` enum/text (`x_query | reddit_subreddit_new | reddit_search`)
+- `name` text not null
+- `enabled` boolean not null default true
+- `target_stage` enum/text null (`discover | validate | build | launch | growth`)
+- `config` jsonb not null
+- `last_cursor` text null
+- `last_synced_at` timestamptz null
+- `last_error` text null
+
+Operational behavior:
+
+- source config stores query/subreddit settings plus credential bindings that resolve through company secrets
+- board operators can manually sync a source to ingest new X / Reddit posts into `social_signals`
+- source config may also enable interval-based auto-sync handled by the existing server heartbeat scheduler
+- source config stores automation thresholds plus scoring strategy (`rules | llm`) and optional LLM model selection
+- sync writes activity log entries and updates last sync state for UI visibility
 
 ## 7.14 `assets` + `issue_attachments`
 

@@ -1,4 +1,10 @@
-export type { Company } from "./company.js";
+export type {
+  Company,
+  CompanyBlueprintState,
+  CompanyMetadata,
+  ZeroPersonRDBlueprintBootstrapRequest,
+  ZeroPersonRDBlueprintBootstrapResult,
+} from "./company.js";
 export type {
   Agent,
   AgentPermissions,
@@ -51,8 +57,21 @@ export type {
   InstanceSchedulerHeartbeatAgent,
 } from "./heartbeat.js";
 export type { LiveEvent } from "./live.js";
-export type { DashboardSummary } from "./dashboard.js";
+export type { DashboardSummary, ZeroPersonRDFunnelSummary } from "./dashboard.js";
 export type { ActivityEvent } from "./activity.js";
+export type {
+  SocialSignal,
+  SocialSignalSummary,
+  SocialSignalSourceAutomation,
+  SocialSignalSourceSchedule,
+  XSocialSignalSourceConfig,
+  RedditSocialSignalSourceConfigBase,
+  RedditSubredditNewSocialSignalSourceConfig,
+  RedditSearchSocialSignalSourceConfig,
+  SocialSignalSourceConfig,
+  SocialSignalSource,
+  SocialSignalSourceSyncResult,
+} from "./social-signal.js";
 export type { SidebarBadges } from "./sidebar-badges.js";
 export type {
   CompanyMembership,

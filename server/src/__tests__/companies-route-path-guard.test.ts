@@ -13,6 +13,10 @@ vi.mock("../services/index.js", () => ({
     archive: vi.fn(),
     remove: vi.fn(),
   }),
+  companyBlueprintService: () => ({
+    bootstrapZeroPersonRD: vi.fn(),
+    summarizeZeroPersonRDFunnel: vi.fn(),
+  }),
   companyPortabilityService: () => ({
     exportBundle: vi.fn(),
     previewImport: vi.fn(),

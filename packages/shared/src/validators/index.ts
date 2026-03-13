@@ -1,8 +1,12 @@
 export {
   createCompanySchema,
   updateCompanySchema,
+  companyMetadataSchema,
+  companyBlueprintStateSchema,
+  zeroPersonRDBlueprintBootstrapSchema,
   type CreateCompany,
   type UpdateCompany,
+  type ZeroPersonRDBlueprintBootstrap,
 } from "./company.js";
 export {
   portabilityIncludeSchema,
@@ -120,6 +124,27 @@ export {
   createAssetImageMetadataSchema,
   type CreateAssetImageMetadata,
 } from "./asset.js";
+
+export {
+  socialSignalSourceScheduleSchema,
+  createSocialSignalSchema,
+  updateSocialSignalSchema,
+  promoteSocialSignalSchema,
+  xSocialSignalSourceConfigSchema,
+  redditSubredditNewSocialSignalSourceConfigSchema,
+  redditSearchSocialSignalSourceConfigSchema,
+  socialSignalSourceAutomationSchema,
+  socialSignalSourceConfigSchema,
+  createSocialSignalSourceSchema,
+  updateSocialSignalSourceSchema,
+  syncSocialSignalSourceSchema,
+  type CreateSocialSignal,
+  type UpdateSocialSignal,
+  type PromoteSocialSignal,
+  type CreateSocialSignalSource,
+  type UpdateSocialSignalSource,
+  type SyncSocialSignalSource,
+} from "./social-signal.js";
 
 export {
   createCompanyInviteSchema,

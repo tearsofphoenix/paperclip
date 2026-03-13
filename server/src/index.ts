@@ -25,7 +25,11 @@ import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { logger } from "./middleware/logger.js";
 import { setupLiveEventsWebSocketServer } from "./realtime/live-events-ws.js";
-import { heartbeatService, reconcilePersistedRuntimeServicesOnStartup } from "./services/index.js";
+import {
+  heartbeatService,
+  reconcilePersistedRuntimeServicesOnStartup,
+  socialSignalSourceService,
+} from "./services/index.js";
 import { createStorageServiceFromConfig } from "./storage/index.js";
 import { printStartupBanner } from "./startup-banner.js";
 import { getBoardClaimWarningUrl, initializeBoardClaimChallenge } from "./board-claim.js";
@@ -334,7 +338,6 @@ export async function startServer(): Promise<StartedServer> {
         password: "paperclip",
         port,
         persistent: true,
-        initdbFlags: ["--encoding=UTF8", "--locale=C"],
         onLog: appendEmbeddedPostgresLog,
         onError: appendEmbeddedPostgresLog,
       });
@@ -512,6 +515,7 @@ export async function startServer(): Promise<StartedServer> {
   
   if (config.heartbeatSchedulerEnabled) {
     const heartbeat = heartbeatService(db as any);
+    const socialSources = socialSignalSourceService(db as any);
   
     // Reap orphaned runs at startup (no threshold -- runningProcesses is empty)
     void heartbeat.reapOrphanedRuns().catch((err) => {
@@ -535,6 +539,17 @@ export async function startServer(): Promise<StartedServer> {
         .reapOrphanedRuns({ staleThresholdMs: 5 * 60 * 1000 })
         .catch((err) => {
           logger.error({ err }, "periodic reap of orphaned heartbeat runs failed");
+        });
+
+      void socialSources
+        .tickScheduler(new Date())
+        .then((result: { checked: number; synced: number; inserted: number; promoted: number }) => {
+          if (result.synced > 0 || result.promoted > 0) {
+            logger.info({ ...result }, "social signal source scheduler synced sources");
+          }
+        })
+        .catch((err: unknown) => {
+          logger.error({ err }, "social signal source scheduler tick failed");
         });
     }, config.heartbeatSchedulerIntervalMs);
   }

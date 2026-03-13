@@ -261,6 +261,74 @@ export function Dashboard() {
             />
           </div>
 
+          {data.socialSignals && (
+            <div className="rounded-md border border-border p-4">
+              <div className="mb-3">
+                <h3 className="text-sm font-semibold text-foreground">Social signal intake</h3>
+                <p className="text-xs text-muted-foreground">
+                  Track how many opportunities are still being reviewed versus already promoted into execution.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                {[
+                  { label: "New", value: data.socialSignals.new },
+                  { label: "Reviewing", value: data.socialSignals.reviewing },
+                  { label: "Validated", value: data.socialSignals.validated },
+                  { label: "Promoted", value: data.socialSignals.promoted },
+                  { label: "Rejected", value: data.socialSignals.rejected },
+                ].map((entry) => (
+                  <div
+                    key={entry.label}
+                    className="rounded-md border border-border bg-card px-3 py-2"
+                  >
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {entry.label}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold">{entry.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.funnel && data.funnel.operatingModel === "zero_person_rd" && (
+            <div className="rounded-md border border-border p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Zero-Person R&D Funnel
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Social discovery → validation → build → launch → growth
+                  </p>
+                </div>
+                <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  Indie R&D Template
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
+                {[
+                  { label: "Discover", value: data.funnel.discover },
+                  { label: "Validate", value: data.funnel.validate },
+                  { label: "Build", value: data.funnel.build },
+                  { label: "Launch", value: data.funnel.launch },
+                  { label: "Growth", value: data.funnel.growth },
+                  { label: "Shipped", value: data.funnel.shipped },
+                ].map((entry) => (
+                  <div
+                    key={entry.label}
+                    className="rounded-md border border-border bg-card px-3 py-2"
+                  >
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {entry.label}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold">{entry.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <ChartCard title="Run Activity" subtitle="Last 14 days">
               <RunActivityChart runs={runs ?? []} />

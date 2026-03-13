@@ -6,6 +6,7 @@ import {
   DollarSign,
   History,
   Search,
+  Radar,
   SquarePen,
   Network,
   Settings,
@@ -85,6 +86,7 @@ export function Sidebar() {
         <SidebarSection label="Work">
           <SidebarNavItem to="/issues" label="Issues" icon={CircleDot} />
           <SidebarNavItem to="/goals" label="Goals" icon={Target} />
+          <SidebarNavItem to="/signals" label="Signals" icon={Radar} />
         </SidebarSection>
 
         <SidebarProjects />

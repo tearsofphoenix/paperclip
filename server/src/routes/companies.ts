@@ -6,15 +6,23 @@ import {
   companyPortabilityPreviewSchema,
   createCompanySchema,
   updateCompanySchema,
+  zeroPersonRDBlueprintBootstrapSchema,
 } from "@paperclipai/shared";
 import { forbidden } from "../errors.js";
 import { validate } from "../middleware/validate.js";
-import { accessService, companyPortabilityService, companyService, logActivity } from "../services/index.js";
+import {
+  accessService,
+  companyBlueprintService,
+  companyPortabilityService,
+  companyService,
+  logActivity,
+} from "../services/index.js";
 import { assertBoard, assertCompanyAccess, getActorInfo } from "./authz.js";
 
 export function companyRoutes(db: Db) {
   const router = Router();
   const svc = companyService(db);
+  const blueprints = companyBlueprintService(db);
   const portability = companyPortabilityService(db);
   const access = accessService(db);
 
@@ -68,6 +76,41 @@ export function companyRoutes(db: Db) {
     const result = await portability.exportBundle(companyId, req.body);
     res.json(result);
   });
+
+  router.post(
+    "/:companyId/blueprints/zero-person-rd-bootstrap",
+    validate(zeroPersonRDBlueprintBootstrapSchema),
+    async (req, res) => {
+      assertBoard(req);
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+
+      const actor = getActorInfo(req);
+      const result = await blueprints.bootstrapZeroPersonRD(
+        companyId,
+        req.body,
+        req.actor.userId ?? null,
+      );
+      await logActivity(db, {
+        companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        action: "company.blueprint.zero_person_rd_bootstrapped",
+        entityType: "company",
+        entityId: companyId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        details: {
+          goalId: result.goalId,
+          createdAgentIds: result.createdAgentIds,
+          createdProjectIds: result.createdProjectIds,
+          createdIssueIds: result.createdIssueIds,
+          socialChannels: req.body.socialChannels ?? ["x", "reddit"],
+        },
+      });
+      res.status(201).json(result);
+    },
+  );
 
   router.post("/import/preview", validate(companyPortabilityPreviewSchema), async (req, res) => {
     if (req.body.target.mode === "existing_company") {

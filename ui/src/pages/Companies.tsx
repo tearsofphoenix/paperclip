@@ -196,6 +196,13 @@ export function Companies() {
                       {company.description}
                     </p>
                   )}
+                  {company.metadata?.operatingModel === "zero_person_rd" && !isEditing && (
+                    <div className="mt-2">
+                      <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        Zero-Person R&D
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Three-dot menu */}
