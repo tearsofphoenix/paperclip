@@ -201,29 +201,43 @@
     {
       "idx": 28,
       "version": "7",
+      "when": 1773432085646,
+      "tag": "0028_harsh_goliath",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
       "when": 1773367800000,
       "tag": "0028_zero_person_rd_blueprint",
       "breakpoints": true
     },
     {
-      "idx": 29,
+      "idx": 30,
       "version": "7",
       "when": 1773369000000,
       "tag": "0029_social_signals_pipeline",
       "breakpoints": true
     },
     {
-      "idx": 30,
+      "idx": 31,
       "version": "7",
       "when": 1773370200000,
       "tag": "0030_social_signal_sources",
       "breakpoints": true
     },
     {
-      "idx": 31,
+      "idx": 32,
       "version": "7",
       "when": 1773540000000,
       "tag": "0031_external_work_integrations",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1773417600000,
+      "tag": "0029_plugin_tables",
       "breakpoints": true
     }
   ]
