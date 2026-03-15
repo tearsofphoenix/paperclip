@@ -26,6 +26,7 @@ import { loadConfig } from "./config.js";
 import { logger } from "./middleware/logger.js";
 import { setupLiveEventsWebSocketServer } from "./realtime/live-events-ws.js";
 import {
+  externalWorkAutomationService,
   heartbeatService,
   reconcilePersistedRuntimeServicesOnStartup,
   socialSignalSourceService,
@@ -516,6 +517,9 @@ export async function startServer(): Promise<StartedServer> {
   if (config.heartbeatSchedulerEnabled) {
     const heartbeat = heartbeatService(db as any);
     const socialSources = socialSignalSourceService(db as any);
+    const externalWorkAutomation = externalWorkAutomationService(db as any, {
+      heartbeatWakeup: heartbeat.wakeup,
+    });
   
     // Reap orphaned runs at startup (no threshold -- runningProcesses is empty)
     void heartbeat.reapOrphanedRuns().catch((err) => {
@@ -550,6 +554,17 @@ export async function startServer(): Promise<StartedServer> {
         })
         .catch((err: unknown) => {
           logger.error({ err }, "social signal source scheduler tick failed");
+        });
+
+      void externalWorkAutomation
+        .tickScheduler(new Date())
+        .then((result: { checked: number; synced: number; woken: number; failed: number }) => {
+          if (result.synced > 0 || result.woken > 0 || result.failed > 0) {
+            logger.info({ ...result }, "external work scheduler processed integrations");
+          }
+        })
+        .catch((err: unknown) => {
+          logger.error({ err }, "external work scheduler tick failed");
         });
     }, config.heartbeatSchedulerIntervalMs);
   }

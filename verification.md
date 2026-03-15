@@ -1,6 +1,6 @@
 # Verification
 
-Date: 2026-03-13
+Date: 2026-03-15
 Executor: Codex
 
 ## Completed checks
@@ -19,6 +19,40 @@ Executor: Codex
 - ✅ `pnpm -r typecheck`
 - ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run cli/src/__tests__/company-delete.test.ts`
 - ✅ `pnpm build`
+- ✅ `pnpm --filter @paperclipai/shared typecheck`
+- ✅ `pnpm --filter @paperclipai/db typecheck`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run packages/shared/src/validators/external-work.test.ts`
+- ✅ `pnpm --filter @paperclipai/server typecheck`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/tapd-integration.test.ts`
+- ✅ `pnpm -r typecheck`
+- ✅ `pnpm build`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`
+- ✅ `pnpm --filter @paperclipai/server typecheck`（external work mapping）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/external-work.test.ts server/src/__tests__/tapd-integration.test.ts`
+- ✅ `pnpm -r typecheck`（external work mapping）
+- ✅ `pnpm build`（external work mapping）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（external work mapping）
+- ✅ `pnpm --filter @paperclipai/server typecheck`（gitee integration）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/gitee-integration.test.ts`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/gitee-integration.test.ts server/src/__tests__/external-work.test.ts server/src/__tests__/tapd-integration.test.ts`
+- ✅ `pnpm -r typecheck`（gitee integration）
+- ✅ `pnpm build`（gitee integration）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（gitee integration）
+- ✅ `pnpm --filter @paperclipai/server typecheck`（external work automation）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/external-work-automation.test.ts server/src/__tests__/gitee-integration.test.ts`
+- ✅ `pnpm -r typecheck`（external work automation）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（external work automation）
+- ✅ `pnpm build`（external work automation）
+- ✅ `pnpm --filter @paperclipai/ui typecheck`（external work operator UI）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run ui/src/lib/external-work.test.ts server/src/__tests__/external-work-routes.test.ts server/src/__tests__/external-work-automation.test.ts server/src/__tests__/gitee-integration.test.ts`
+- ✅ `pnpm -r typecheck`（external work operator UI）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（external work operator UI）
+- ✅ `pnpm build`（external work operator UI）
+- ✅ `pnpm --filter @paperclipai/server typecheck`（browser fallback）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/browser-fallback.test.ts server/src/__tests__/tapd-integration.test.ts server/src/__tests__/gitee-integration.test.ts`
+- ✅ `pnpm -r typecheck`（browser fallback）
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（browser fallback）
+- ✅ `pnpm build`（browser fallback）
 
 Assessment:
 
@@ -29,4 +63,43 @@ Assessment:
 - 之前由 `embedded-postgres` 类型签名变化导致的 `initdbFlags` 编译阻塞已在 `server`、`packages/db`、`cli` 三处清理完成。
 - CLI 侧 `Company` 合同测试也已同步补齐 `metadata` 字段并通过。
 - 本轮还手动补充了 `social_signals`、`social_signal_sources` 的迁移文件与 journal 记录。
+- 当前已新增 enterprise delivery 所需的第一阶段 shared/db contracts：external work integrations、external work items、external work item events，以及 TAPD/Gitee provider config validators。
+- 本轮手工补充了 `packages/db/src/migrations/0031_external_work_integrations.sql` 与 journal 记录。
+- 当前已新增 TAPD OpenAPI provider 服务层，支持 company-scoped 凭据解析、workspace/iteration/story/task/bug 读取，以及 task/bug 状态回写。
+- TAPD 服务优先复用现有 `secretService` 做凭据绑定解析，并沿用现有 provider-style fetch/error handling，不引入新的执行子系统。
+- `server/src/__tests__/tapd-integration.test.ts` 已覆盖 basic/bearer 鉴权、查询参数构造、响应归一化、PUT writeback 与 provider error 映射。
+- 当前已新增 `server/src/services/external-work.ts`，把 TAPD 外部工单持久化为 `external_work_items`，并映射到既有 `issues` / `projects` 流。
+- 该映射服务不会创建第二套任务系统：story/task/bug 通过 `issueService.create/update` 建立或更新关联 issue，iteration/workspace 仅同步为外部元数据项。
+- `server/src/__tests__/external-work.test.ts` 已覆盖状态映射、导入描述构造、首次建 issue、更新已关联 issue、失败项落库与 integration 错误汇总。
+- 当前已新增 `server/src/services/gitee-integration.ts`，复用现有 `project_workspaces` / `workspace runtime` 模型，为 Gitee repo binding 提供：
+  - company-scoped 凭据解析
+  - repo binding -> project workspace 同步
+  - 本地 clone / pull
+  - 本地 add / commit / push
+- Gitee 服务不会新建 repo 子系统，而是把 `repoUrl` / `repoRef` 写回既有 project workspace，并将本地 clone 目录固定在实例目录下，供 heartbeat/worktree 后续复用。
+- `server/src/__tests__/gitee-integration.test.ts` 已覆盖 access-token 配置解析、binding 同步、clone/pull、commit/push、无改动 no-op push。
+- 当前已新增 `server/src/services/external-work-automation.ts`，把 TAPD sync、mapped issue 自动唤醒、heartbeat 执行前 repo 准备、执行后 Gitee commit/push 与 TAPD ticket 状态回写串进现有执行闭环。
+- `server/src/services/heartbeat.ts` 现会在 run 前调用 external work prepare hook，优先准备关联 Gitee repo，再进入既有 execution workspace / git worktree 策略；run 后会调用 finalize hook，在不改变 adapter 成功判定的前提下补做 git push 与 TAPD writeback。
+- `server/src/index.ts` 的 scheduler 现已接入 external work tick，能按 TAPD integration 的 schedule 自动同步并自动唤醒已映射且已分配 assignee 的 issue。
+- `server/src/__tests__/external-work-automation.test.ts` 已覆盖 scheduler kickoff、repo push + TAPD writeback 成功路径，以及“commit 已成功但 TAPD writeback 失败”的部分失败路径。
+- `server/src/__tests__/gitee-integration.test.ts` 新增 git worktree 路径 commit/push 测试，验证 heartbeat 使用 worktree 执行时仍能把修改 push 回远端分支。
+- 当前已新增 `server/src/routes/external-work.ts`，为 board 用户暴露 external work integration 的创建/更新、手动 sync、external item 查询与事件查询 API；`server/src/__tests__/external-work-routes.test.ts` 已覆盖 create/sync dispatch/event list/cross-company guard。
+- 当前已新增 `ui/src/api/externalWork.ts` 与 `ui/src/pages/ExternalWork.tsx`，让 board 用户可直接在前端：
+  - 创建 / 编辑 TAPD 与 Gitee integration
+  - 手动触发 sync
+  - 查看 synced external work items 与 item events
+  - 配置 browser fallback 凭据占位，以便后续接入浏览器自动化 provider
+- UI 管理页继续复用既有 company context、React Query、projects/secrets API client、sidebar/router 结构，不引入平行管理子系统。
+- 当前已新增 `server/src/services/browser-fallback.ts`，复用 `browserAutomation` 配置里的 `storageState` / `cookieHeader` / `loginUrl` / `headless`，通过 Playwright Chromium 在浏览器上下文内执行 `fetch`。
+- `server/src/services/tapd-integration.ts` 已在 `requestTapd()` 中真正接入 `fallbackMode`：
+  - `api_only`：仅走现有 OpenAPI
+  - `prefer_api`：先走 OpenAPI，失败后降级到 browser-backed fetch
+  - `browser_only`：直接走浏览器会话请求
+- `server/src/services/gitee-integration.ts` 已在用户名解析路径接入 browser fallback；当前 browser session 主要覆盖会话型 HTTP 请求，不替代 token/ssh git clone/pull/commit/push 主链路。
+- `server/src/__tests__/browser-fallback.test.ts` 已覆盖 storageState / cookieHeader 解析与 browser-backed fetch 生命周期；`tapd-integration.test.ts` / `gitee-integration.test.ts` 已覆盖 provider 级 fallback 分支。
 - 当前 `pnpm -r typecheck` 与 `pnpm build` 已恢复通过；仅保留 UI bundle size warning 作为非阻塞观察项。
+- 本轮最终已通过全量 `pnpm test:run`（78 files, 322 tests passed, 1 skipped），说明新增 TAPD provider、external work 映射、Gitee git workflow、heartbeat 自动化编排、operator UI/API 管理面与 browser fallback 均与既有 zero-person / social / heartbeat 路径兼容。
+- `.codex/testing.md`、`.codex/review-report.md`、`.codex/operations-log.md` 与 `report/zero-person-rd-release-pr-summary-2026-03-13.md` 已同步更新，可直接作为本轮 external-work / browser fallback 改造的 PR 与 release 留痕。
+- 收尾核对阶段额外执行 `git diff --check`，已清理 release/PR summary 文档中的 trailing whitespace，当前 patch 级格式检查通过。
+- 为回补任务系统中尚未验收的 `90201299`，已重新执行 `pnpm --filter @paperclipai/server typecheck` 与 `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/external-work.test.ts server/src/__tests__/gitee-integration.test.ts server/src/__tests__/external-work-routes.test.ts`；结果通过，确认 `externalWorkService` 的 create/update/getItemById/listItemEvents 以及 Gitee binding sync 的 `lastSyncedAt/lastError` 状态回写能力均已落地并可被 route/UI 复用。
+- 回补任务 `9be7c79c-76a7-4573-bdab-3ad243b9a9f3` 时，已核对 `server/src/routes/external-work.ts` 提供 integrations list/create/update/manual sync、items list、item events 查询，并确认 `server/src/app.ts` 通过 `api.use(externalWorkRoutes(db))` 挂载到 `/api`；配合定向 route 测试通过，说明 board-only、company-scoped 的 external-work operator API 已接入主应用。

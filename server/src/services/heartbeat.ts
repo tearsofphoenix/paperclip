@@ -33,6 +33,7 @@ import {
   releaseRuntimeServicesForRun,
 } from "./workspace-runtime.js";
 import { issueService } from "./issues.js";
+import { externalWorkAutomationService } from "./external-work-automation.js";
 import {
   buildExecutionWorkspaceAdapterConfig,
   parseIssueExecutionWorkspaceSettings,
@@ -455,6 +456,7 @@ export function heartbeatService(db: Db) {
   const runLogStore = getRunLogStore();
   const secretsSvc = secretService(db);
   const issuesSvc = issueService(db);
+  const externalWorkAutomation = externalWorkAutomationService(db);
 
   async function getAgent(agentId: string) {
     return db
@@ -1140,6 +1142,14 @@ export function heartbeatService(db: Db) {
           .where(and(eq(projects.id, executionProjectId), eq(projects.companyId, agent.companyId)))
           .then((rows) => parseProjectExecutionWorkspacePolicy(rows[0]?.executionWorkspacePolicy))
       : null;
+    const externalWorkPreparation = await externalWorkAutomation.prepareRun({
+      companyId: agent.companyId,
+      issueId,
+      projectId: executionProjectId,
+      runId: run.id,
+      agentId: agent.id,
+      invocationSource: run.invocationSource,
+    });
     const taskSession = taskKey
       ? await getTaskSession(agent.companyId, agent.id, agent.adapterType, taskKey)
       : null;
@@ -1213,6 +1223,7 @@ export function heartbeatService(db: Db) {
     });
     const runtimeSessionParams = runtimeSessionResolution.sessionParams;
     const runtimeWorkspaceWarnings = [
+      ...externalWorkPreparation.warnings,
       ...resolvedWorkspace.warnings,
       ...executionWorkspace.warnings,
       ...(runtimeSessionResolution.warning ? [runtimeSessionResolution.warning] : []),
@@ -1517,6 +1528,28 @@ export function heartbeatService(db: Db) {
         outcome = "succeeded";
       } else {
         outcome = "failed";
+      }
+
+      try {
+        const externalWorkFinalize = await externalWorkAutomation.finalizeRun({
+          companyId: agent.companyId,
+          issueId,
+          projectId: executionProjectId,
+          runId: run.id,
+          agentId: agent.id,
+          invocationSource: run.invocationSource,
+          outcome,
+          contextSnapshot: context,
+          resultJson: adapterResult.resultJson ?? null,
+        });
+        for (const warning of externalWorkFinalize.warnings) {
+          await onLog("stderr", `[paperclip] ${warning}\n`);
+        }
+      } catch (err) {
+        await onLog(
+          "stderr",
+          `[paperclip] External work automation finalize failed: ${err instanceof Error ? err.message : String(err)}\n`,
+        );
       }
 
       let logSummary: { bytes: number; sha256?: string; compressed: boolean } | null = null;

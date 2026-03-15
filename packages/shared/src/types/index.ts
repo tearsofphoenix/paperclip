@@ -72,6 +72,24 @@ export type {
   SocialSignalSource,
   SocialSignalSourceSyncResult,
 } from "./social-signal.js";
+export type {
+  ExternalWorkIntegrationSchedule,
+  ExternalWorkBrowserAutomationConfig,
+  TapdProjectBinding,
+  GiteeRepoBinding,
+  TapdBasicAuthCredentials,
+  TapdAccessTokenCredentials,
+  TapdIntegrationCredentials,
+  TapdExternalWorkIntegrationConfig,
+  GiteeAccessTokenCredentials,
+  GiteeSshCredentials,
+  GiteeIntegrationCredentials,
+  GiteeExternalWorkIntegrationConfig,
+  ExternalWorkIntegrationConfig,
+  ExternalWorkIntegration,
+  ExternalWorkItem,
+  ExternalWorkItemEvent,
+} from "./external-work.js";
 export type { SidebarBadges } from "./sidebar-badges.js";
 export type {
   CompanyMembership,

@@ -218,6 +218,13 @@
       "when": 1773370200000,
       "tag": "0030_social_signal_sources",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1773540000000,
+      "tag": "0031_external_work_integrations",
+      "breakpoints": true
     }
   ]
 }

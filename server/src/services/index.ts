@@ -19,6 +19,17 @@ export { dashboardService } from "./dashboard.js";
 export { socialSignalService, buildSocialSignalSummary } from "./social-signals.js";
 export { socialSignalSourceService } from "./social-signal-sources.js";
 export { socialIngestionService } from "./social-ingestion.js";
+export {
+  externalWorkService,
+  buildImportedIssueDescription,
+  mapTapdStatusToIssueStatus,
+} from "./external-work.js";
+export {
+  externalWorkAutomationService,
+  mapIssueStatusToTapdStatus,
+} from "./external-work-automation.js";
+export { giteeIntegrationService } from "./gitee-integration.js";
+export { tapdIntegrationService } from "./tapd-integration.js";
 export { scoreSocialSignal, shouldAutoPromoteScoredSignal } from "./social-signal-scoring.js";
 export { socialSignalAutomationService } from "./social-signal-automation.js";
 export { sidebarBadgeService } from "./sidebar-badges.js";

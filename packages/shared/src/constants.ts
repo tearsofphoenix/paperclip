@@ -31,6 +31,53 @@ export type SocialSignalSourceKind = (typeof SOCIAL_SIGNAL_SOURCE_KINDS)[number]
 export const SOCIAL_SIGNAL_SCORING_MODES = ["rules", "llm"] as const;
 export type SocialSignalScoringMode = (typeof SOCIAL_SIGNAL_SCORING_MODES)[number];
 
+export const EXTERNAL_WORK_INTEGRATION_PROVIDERS = ["tapd", "gitee"] as const;
+export type ExternalWorkIntegrationProvider =
+  (typeof EXTERNAL_WORK_INTEGRATION_PROVIDERS)[number];
+
+export const EXTERNAL_WORK_INTEGRATION_FALLBACK_MODES = [
+  "api_only",
+  "prefer_api",
+  "browser_only",
+] as const;
+export type ExternalWorkIntegrationFallbackMode =
+  (typeof EXTERNAL_WORK_INTEGRATION_FALLBACK_MODES)[number];
+
+export const EXTERNAL_WORK_ITEM_TYPES = [
+  "workspace",
+  "project",
+  "iteration",
+  "story",
+  "task",
+  "bug",
+  "repo",
+  "branch",
+  "commit",
+] as const;
+export type ExternalWorkItemType = (typeof EXTERNAL_WORK_ITEM_TYPES)[number];
+
+export const EXTERNAL_WORK_ITEM_SYNC_STATUSES = [
+  "pending",
+  "synced",
+  "mapped",
+  "failed",
+  "archived",
+] as const;
+export type ExternalWorkItemSyncStatus =
+  (typeof EXTERNAL_WORK_ITEM_SYNC_STATUSES)[number];
+
+export const TAPD_INTEGRATION_AUTH_MODES = ["basic", "access_token"] as const;
+export type TapdIntegrationAuthMode =
+  (typeof TAPD_INTEGRATION_AUTH_MODES)[number];
+
+export const GITEE_INTEGRATION_AUTH_MODES = ["access_token", "ssh"] as const;
+export type GiteeIntegrationAuthMode =
+  (typeof GITEE_INTEGRATION_AUTH_MODES)[number];
+
+export const GITEE_INTEGRATION_CLONE_PROTOCOLS = ["https", "ssh"] as const;
+export type GiteeIntegrationCloneProtocol =
+  (typeof GITEE_INTEGRATION_CLONE_PROTOCOLS)[number];
+
 export const ZERO_PERSON_RD_STAGES = [
   "discover",
   "validate",

@@ -7,6 +7,7 @@ import {
   History,
   Search,
   Radar,
+  GitBranch,
   SquarePen,
   Network,
   Settings,
@@ -87,6 +88,7 @@ export function Sidebar() {
           <SidebarNavItem to="/issues" label="Issues" icon={CircleDot} />
           <SidebarNavItem to="/goals" label="Goals" icon={Target} />
           <SidebarNavItem to="/signals" label="Signals" icon={Radar} />
+          <SidebarNavItem to="/external-work" label="External Work" icon={GitBranch} />
         </SidebarSection>
 
         <SidebarProjects />

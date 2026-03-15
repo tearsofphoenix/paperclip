@@ -147,6 +147,30 @@ export {
 } from "./social-signal.js";
 
 export {
+  externalWorkIntegrationScheduleSchema,
+  externalWorkBrowserAutomationConfigSchema,
+  tapdProjectBindingSchema,
+  giteeRepoBindingSchema,
+  tapdIntegrationBasicCredentialsSchema,
+  tapdIntegrationAccessTokenCredentialsSchema,
+  tapdIntegrationCredentialsSchema,
+  tapdExternalWorkIntegrationConfigSchema,
+  giteeIntegrationAccessTokenCredentialsSchema,
+  giteeIntegrationSshCredentialsSchema,
+  giteeIntegrationCredentialsSchema,
+  giteeExternalWorkIntegrationConfigSchema,
+  externalWorkIntegrationConfigSchema,
+  createExternalWorkIntegrationSchema,
+  updateExternalWorkIntegrationSchema,
+  syncExternalWorkIntegrationSchema,
+  externalWorkItemSchema,
+  type CreateExternalWorkIntegration,
+  type UpdateExternalWorkIntegration,
+  type SyncExternalWorkIntegration,
+  type ExternalWorkItemPayload,
+} from "./external-work.js";
+
+export {
   createCompanyInviteSchema,
   createOpenClawInvitePromptSchema,
   acceptInviteSchema,

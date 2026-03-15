@@ -20,6 +20,28 @@ In maintainer terms, this PR is not a cosmetic feature pass. It adds a new defau
 **Recommendation:** merge as a coordinated product-scope PR.  
 Reason: the branch is now coherent end-to-end, contract-synchronized across db/shared/server/ui, and verification passes (`pnpm -r typecheck`, `pnpm build`, targeted tests).
 
+### 1.1 Addendum — enterprise delivery integration foundation (2026-03-15)
+
+This branch now also begins the **enterprise delivery loop** needed for real R&D execution against external tools:
+
+- shared/db contracts for `external_work_integrations`, `external_work_items`, and `external_work_item_events`
+- TAPD / Gitee integration configuration types and validators
+- a first server-side **TAPD OpenAPI provider** that can:
+  - resolve company-scoped TAPD credentials via the existing secrets subsystem
+  - read TAPD workspaces / iterations / stories / bugs / tasks
+  - write back bug / task updates through TAPD OpenAPI
+- an **external work mapping service** that:
+  - persists TAPD records into `external_work_items`
+  - maps TAPD story / task / bug records into existing Paperclip issues
+  - keeps the mapping company-scoped and activity-visible
+- a first **Gitee git workflow service** that:
+  - syncs repo bindings into existing project workspaces
+  - clones / pulls bound repos into the Paperclip instance workspace area
+  - commits and pushes local changes back through git
+  - prepares the repo state needed by the existing execution worktree strategy
+
+This matters because it keeps the zero-person team narrative grounded in actual enterprise delivery systems instead of a demo-only loop. The implementation still reuses Paperclip primitives rather than adding a parallel orchestration stack.
+
 ---
 
 ## 2. What this PR actually adds
@@ -356,3 +378,175 @@ It also cleans up the historical `embedded-postgres` `initdbFlags` type mismatch
 3. whether the direct OpenAI scoring integration should remain V1 scope
 
 Everything else is in good shape for an integrated feature release.
+
+---
+
+## 11. Enterprise delivery addendum
+
+Follow-up work on 2026-03-15 extends the zero-person R&D control plane into an **enterprise delivery loop** for indie teams that need to operate against TAPD + Gitee:
+
+- TAPD project / iteration / story / task / bug sync already lands in `external_work_items`
+- mapped TAPD items now auto-kick off assigned Paperclip issues through the existing heartbeat wakeup flow
+- heartbeat now prepares the bound Gitee repo before execution, so agent runs can enter the existing project-workspace / git-worktree path with real code checked out
+- heartbeat post-run automation now supports:
+  - Gitee `git add / commit / push`
+  - git worktree path pushback, not just primary repo root pushback
+  - TAPD task / bug status writeback after execution
+  - partial-failure handling when repo push succeeds but TAPD writeback fails
+- the instance scheduler now also ticks external-work integrations, so scheduled TAPD sync can automatically wake the mapped assignee agent
+
+### Additional files / services of note
+
+- `server/src/services/external-work-automation.ts`
+- `server/src/services/heartbeat.ts`
+- `server/src/index.ts`
+- `server/src/services/gitee-integration.ts`
+- `server/src/__tests__/external-work-automation.test.ts`
+
+### Additional verification
+
+- `pnpm --filter @paperclipai/server typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/external-work-automation.test.ts server/src/__tests__/gitee-integration.test.ts`
+- `pnpm -r typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`
+- `pnpm build`
+
+This means the current branch is no longer only “social signal → issue kickoff”; it now supports the broader loop:
+
+**TAPD demand / delivery intake → Paperclip issue execution → Gitee code push → TAPD ticket writeback**
+
+---
+
+## 12. Operator surface addendum
+
+The 2026-03-15 continuation also adds the missing **operator management surface** for this delivery loop.
+
+### 12.1 Backend operator routes
+
+New `server/src/routes/external-work.ts` exposes board-scoped management endpoints for:
+
+- listing company integrations
+- creating integrations
+- updating integrations
+- manually triggering sync
+- listing synced external work items
+- viewing item-level events
+
+The route implementation intentionally follows the same structure as `social-signal-sources`:
+
+- `assertBoard`
+- `assertCompanyAccess`
+- shared `validate(...)`
+- `logActivity(...)`
+
+This keeps the enterprise-delivery surface aligned with the existing operator API instead of creating a side-channel admin subsystem.
+
+### 12.2 Frontend operator page
+
+New UI artifacts:
+
+- `ui/src/api/externalWork.ts`
+- `ui/src/lib/external-work.ts`
+- `ui/src/pages/ExternalWork.tsx`
+
+And route/navigation wiring:
+
+- `ui/src/App.tsx`
+- `ui/src/components/Sidebar.tsx`
+- `ui/src/lib/queryKeys.ts`
+
+The new **External Work** page now lets board operators:
+
+- create and edit TAPD integrations
+- create and edit Gitee integrations
+- bind TAPD scopes into existing Paperclip projects
+- bind Gitee repos into existing Paperclip projects/workspaces
+- trigger manual sync from the UI
+- inspect synced external items and event history
+- pre-configure browser-fallback credentials/state for future TAPD/Gitee browser automation
+
+### 12.3 Why this matters
+
+Without this addendum, the branch had strong service-layer capabilities but still required API-only operation for setup and inspection.
+
+With the new operator surface, the branch now supports the full narrative:
+
+1. configure TAPD and Gitee from the board UI
+2. sync delivery context into Paperclip
+3. let heartbeat runs work on the bound repo/worktree
+4. push code back to Gitee
+5. write status back to TAPD
+
+That makes the “zero-person indie R&D team” story much closer to a real operating console rather than just a backend integration layer.
+
+### 12.4 Additional verification
+
+- `pnpm --filter @paperclipai/ui typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run ui/src/lib/external-work.test.ts server/src/__tests__/external-work-routes.test.ts server/src/__tests__/external-work-automation.test.ts server/src/__tests__/gitee-integration.test.ts`
+- `pnpm -r typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`
+- `pnpm build`
+
+---
+
+## 13. Browser fallback addendum
+
+The latest continuation also turns the previously declarative `browserAutomation` config into a real runtime capability.
+
+### 13.1 New shared browser-backed fetch layer
+
+New artifact:
+
+- `server/src/services/browser-fallback.ts`
+
+This helper:
+
+- parses browser `storageState`
+- parses raw `Cookie` headers into domain-scoped cookies
+- optionally prewarms a login page
+- launches Chromium through Playwright
+- executes HTTP requests inside the browser context using session cookies
+
+This is important because it keeps TAPD/Gitee browser-session recovery in one reusable place rather than scattering headless-browser logic across provider services.
+
+### 13.2 TAPD fallback is now real
+
+`server/src/services/tapd-integration.ts` now honors:
+
+- `api_only`
+- `prefer_api`
+- `browser_only`
+
+That means TAPD reads/writes can now:
+
+1. use OpenAPI directly
+2. fall back to a browser-backed authenticated session when API auth or provider availability fails
+3. run browser-first when the integration is intentionally configured that way
+
+### 13.3 Gitee fallback is now partially real
+
+`server/src/services/gitee-integration.ts` now uses browser fallback for session-based HTTP recovery on the username-resolution path.
+
+Important nuance:
+
+- git clone / pull / commit / push still remain token/ssh based
+- browser fallback currently augments session-based HTTP requests
+- it does **not** replace git transport authentication
+
+This is still a meaningful improvement because it gives the operator a recovery path for browser-authenticated Gitee API/session access without disturbing the stable git workflow.
+
+### 13.4 Additional verification
+
+- `pnpm --filter @paperclipai/server typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/browser-fallback.test.ts server/src/__tests__/tapd-integration.test.ts server/src/__tests__/gitee-integration.test.ts`
+- `pnpm -r typecheck`
+- `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`
+- `pnpm build`
+
+At this point the branch supports not only:
+
+**TAPD intake → Paperclip execution → Gitee push → TAPD writeback**
+
+but also:
+
+**API-first operation with browser-session fallback where external enterprise systems require it**

@@ -69,6 +69,12 @@ export const queryKeys = {
     list: (companyId: string) => ["social-signals", companyId] as const,
     sources: (companyId: string) => ["social-signal-sources", companyId] as const,
   },
+  externalWork: {
+    integrations: (companyId: string) => ["external-work-integrations", companyId] as const,
+    items: (companyId: string, integrationId?: string) =>
+      ["external-work-items", companyId, integrationId ?? "__all__"] as const,
+    events: (itemId: string) => ["external-work-item-events", itemId] as const,
+  },
   sidebarBadges: (companyId: string) => ["sidebar-badges", companyId] as const,
   activity: (companyId: string) => ["activity", companyId] as const,
   costs: (companyId: string, from?: string, to?: string) =>
