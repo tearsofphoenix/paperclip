@@ -53,6 +53,15 @@ Executor: Codex
 - ✅ `pnpm -r typecheck`（browser fallback）
 - ✅ `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run`（browser fallback）
 - ✅ `pnpm build`（browser fallback）
+- ✅ `curl -sf http://127.0.0.1:3213/api/health`
+- ✅ `curl -sf http://127.0.0.1:3213/api/companies/5ab605b1-3cb4-4570-947e-05684062966f/external-work-integrations | jq`
+- ✅ `node + Playwright（沙箱外）访问 http://127.0.0.1:3213/SHA/external-work`
+- ✅ `node + Playwright（沙箱外）提交 Gitee integration 创建表单`
+- ✅ `pnpm -r typecheck`（2026-03-16 运行态复核）
+- ⚠️ `PAPERCLIP_HOME=/tmp/paperclip-vitest PAPERCLIP_INSTANCE_ID=vitest pnpm test:run`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-external-work-tests PAPERCLIP_INSTANCE_ID=external-work pnpm exec vitest run server/src/__tests__/external-work-routes.test.ts server/src/__tests__/external-work-automation.test.ts server/src/__tests__/external-work.test.ts server/src/__tests__/gitee-integration.test.ts server/src/__tests__/tapd-integration.test.ts packages/shared/src/validators/external-work.test.ts ui/src/lib/external-work.test.ts`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-build PAPERCLIP_INSTANCE_ID=build pnpm build`
+- ✅ `PAPERCLIP_HOME=/tmp/paperclip-vitest PAPERCLIP_INSTANCE_ID=vitest pnpm test:run`（2026-03-16 二次全量复核）
 
 Assessment:
 
@@ -103,3 +112,7 @@ Assessment:
 - 收尾核对阶段额外执行 `git diff --check`，已清理 release/PR summary 文档中的 trailing whitespace，当前 patch 级格式检查通过。
 - 为回补任务系统中尚未验收的 `90201299`，已重新执行 `pnpm --filter @paperclipai/server typecheck` 与 `PAPERCLIP_HOME=/tmp/paperclip-test pnpm test:run server/src/__tests__/external-work.test.ts server/src/__tests__/gitee-integration.test.ts server/src/__tests__/external-work-routes.test.ts`；结果通过，确认 `externalWorkService` 的 create/update/getItemById/listItemEvents 以及 Gitee binding sync 的 `lastSyncedAt/lastError` 状态回写能力均已落地并可被 route/UI 复用。
 - 回补任务 `9be7c79c-76a7-4573-bdab-3ad243b9a9f3` 时，已核对 `server/src/routes/external-work.ts` 提供 integrations list/create/update/manual sync、items list、item events 查询，并确认 `server/src/app.ts` 通过 `api.use(externalWorkRoutes(db))` 挂载到 `/api`；配合定向 route 测试通过，说明 board-only、company-scoped 的 external-work operator API 已接入主应用。
+- 2026-03-16 运行态复核确认：本地隔离实例 `http://127.0.0.1:3213` 正常提供 `/api/health`，`/SHA/external-work` 页面可见并成功通过真实浏览器自动化创建 Gitee integration，返回 `201` 且数据已持久化。
+- 2026-03-16 定向 external-work 测试集（7 文件 / 37 用例）全部通过，进一步确认本轮要求的 TAPD 读取、Gitee repo workflow、route/service/automation/UI helper 合同仍然成立。
+- 2026-03-16 全量 `pnpm test:run` 在设置临时 `PAPERCLIP_HOME` 后仍剩 3 个非本轮能力用例失败：`server/src/__tests__/health.test.ts`、`server/src/__tests__/openclaw-invite-prompt-route.test.ts`、`server/src/__tests__/private-hostname-guard.test.ts`；这 3 项与 external-work / TAPD / Gitee 核心闭环无直接依赖，当前作为仓库基线风险单独记录。
+- 2026-03-16 随后重新在全新隔离环境下执行同一条全量 `pnpm test:run`，结果为 **87 files passed，357 tests passed，1 skipped**；前述 3 个失败未再复现，当前应以最新一次全量通过结果为准。
