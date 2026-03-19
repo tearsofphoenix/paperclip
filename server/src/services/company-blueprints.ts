@@ -28,6 +28,8 @@ export const ZERO_PERSON_RD_FUNNEL_LABELS = {
   launch: "funnel:launch",
   growth: "funnel:growth",
 } as const;
+export const ZERO_PERSON_RD_DISCOVER_ISSUE_TITLE =
+  "Mine social signals for painful, urgent, and paid-worthy problems";
 
 const ZERO_PERSON_RD_LABEL_COLORS: Record<keyof typeof ZERO_PERSON_RD_FUNNEL_LABELS, string> = {
   discover: "#3b82f6",
@@ -128,14 +130,14 @@ const ZERO_PERSON_RD_AGENT_DEFINITIONS = [
   },
 ] as const;
 
-const ZERO_PERSON_RD_ISSUE_DEFINITIONS = [
+export const ZERO_PERSON_RD_ISSUE_DEFINITIONS = [
   {
     stage: "discover",
     roleKey: "pm",
     projectKey: "discover",
-    status: "in_progress",
+    status: "todo",
     priority: "high",
-    title: "Mine social signals for painful, urgent, and paid-worthy problems",
+    title: ZERO_PERSON_RD_DISCOVER_ISSUE_TITLE,
     description:
       "从 X、Reddit、Hacker News 等渠道收集连续出现的抱怨、替代品不足、明确预算与紧迫交付线索，整理 10 个候选问题并给出优先级。",
   },
@@ -451,8 +453,7 @@ export function companyBlueprintService(db: Db) {
               assigneeAgentId: agentIdByKey.get(definition.roleKey) ?? null,
               issueNumber: companyCounter.issueCounter,
               identifier,
-              startedAt:
-                definition.status === "in_progress" ? new Date() : null,
+              startedAt: null,
             })
             .returning();
 

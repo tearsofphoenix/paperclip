@@ -323,6 +323,21 @@ pnpm secrets:migrate-inline-env         # dry run
 pnpm secrets:migrate-inline-env --apply # apply migration
 ```
 
+Repair helper for legacy zero-person R&D discover issues that were seeded as `in_progress`
+before the blueprint fix landed:
+
+```sh
+pnpm repair:zero-person-discover-status
+pnpm repair:zero-person-discover-status -- --apply
+```
+
+Optional filters:
+
+```sh
+pnpm repair:zero-person-discover-status -- --company-id <companyId>
+pnpm repair:zero-person-discover-status -- --issue-id <issueId> --apply
+```
+
 ## Company Deletion Toggle
 
 Company deletion is intended as a dev/debug capability and can be disabled at runtime:
